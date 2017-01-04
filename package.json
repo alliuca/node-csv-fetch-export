@@ -1,0 +1,44 @@
+{
+  "name": "node-fetch-n-export-ps",
+  "version": "1.0.0",
+  "description": "A tool for fetching music albums data from an API, using a .csv as source, and export it to be Prestashop-ready",
+  "main": "index.js",
+  "author": "Luca Allievi",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "test": "mocha ./test/specs/**/*.spec.js --timeout 15000",
+    "test:fe": "karma start ./test/karma.config.js --single-run"
+  },
+  "dependencies": {
+    "csv-parse": "^1.1.7",
+    "postcss-basscss": "^0.2.3",
+    "request": "^2.79.0",
+    "vue": "^2.1.4",
+    "vue-resource": "^1.0.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^6.5.3",
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.9",
+    "babel-preset-es2015": "^6.18.0",
+    "css-loader": "^0.26.1",
+    "del": "^2.2.2",
+    "expect": "^1.20.2",
+    "html-webpack-plugin": "^2.24.1",
+    "karma": "0.12.37",
+    "karma-babel-preprocessor": "^6.0.1",
+    "karma-mocha": "^1.3.0",
+    "karma-webpack": "1.7.0",
+    "mocha": "^3.2.0",
+    "multer": "^1.2.1",
+    "postcss-loader": "^1.2.1",
+    "supertest": "^2.0.1",
+    "vue-loader": "^10.0.2",
+    "vue-template-compiler": "^2.1.4",
+    "webpack": "2.1.0-beta.25",
+    "webpack-dev-middleware": "^1.9.0",
+    "webpack-dev-server": "2.1.0-beta.10",
+    "webpack-hot-middleware": "^2.13.2"
+  }
+}
