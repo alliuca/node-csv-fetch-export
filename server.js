@@ -10,7 +10,7 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
 
 const config = require('./config');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'temp/' });
 const webpackDevConfig = require('./webpack.dev.config.js');
 
 const app = express();
@@ -25,7 +25,10 @@ app.use(webpackHotMiddleware(compiler, {
   log: console.log
 }));
 
-del.sync(['uploads/*']);
+app.use(express.static(__dirname + '/assets'));
+
+del.sync(['temp/*']);
+del.sync(['assets/exports/*']);
 
 app.get('/', (req, res, next) => {
   compiler.outputFileSystem.readFile(compiler.outputPath + 'index.html', (err, result) => {
@@ -38,7 +41,12 @@ app.get('/', (req, res, next) => {
 });
 
 app.post('/upload', upload.fields([{ name: 'fileinput' }, { name: 'inputcategory' }]), (req, res, next) => {
-  let exportPath = __dirname + '/uploads/export.csv';
+  let exportsPath = __dirname + '/assets/exports';
+  let exportPath = __dirname + '/assets/exports/export.csv';
+
+  if (!fs.existsSync(exportsPath))
+    fs.mkdirSync(exportsPath);
+
   if (fs.existsSync(exportPath))
     fs.unlinkSync(exportPath);
 
@@ -61,7 +69,7 @@ app.post('/upload', upload.fields([{ name: 'fileinput' }, { name: 'inputcategory
   });
 
   parser.on('finish', () => {
-    fs.appendFileSync(__dirname + '/uploads/export.csv', 'Active (0/1);Name *;Categories (x,y,z...);Price tax excluded or Price tax included;EAN13;Quantity;URL rewritten;Image URLs (x,y,z...)\r\n');
+    fs.appendFileSync(__dirname + '/assets/exports/export.csv', 'Active (0/1);Name *;Categories (x,y,z...);Price tax excluded or Price tax included;EAN13;Quantity;URL rewritten;Image URLs (x,y,z...)\r\n');
     output.slice(1).forEach((item, index, arr) => {
       request(config.LASTFM_API_URL + config.getAPIResource('album.getinfo', `&artist=${encodeURIComponent(item[0].trim())}&album=${encodeURIComponent(item[3].trim())}`), (err, response, body) => {
         if (err)
@@ -71,15 +79,18 @@ app.post('/upload', upload.fields([{ name: 'fileinput' }, { name: 'inputcategory
           let row = '';
           let name = (`${result.album.artist} ${result.album.name}`).toLowerCase().replace(/\s/g, '-').replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
           row += `0;"${result.album.artist} - ${result.album.name}";"${category}";"${item[8]}";"${item[2]}";"${item[5]}";"${name}";"${result.album.image.filter((image) => image.size === 'mega')[0]['#text']}"\r\n`;
-          fs.appendFileSync(__dirname + '/uploads/export.csv', row);
-          console.log(`Exported row#${counter}`);
+          fs.appendFileSync(__dirname + '/assets/exports/export.csv', row);
+          // console.log(`Exported row#${counter}`);
           results.push({title: `${item[0]} - ${item[3]}`, state: 'ok'});
         } else {
           results.push({title: `${item[0]} - ${item[3]}`, state: 'error'});
         }
         if (++counter == arr.length) {
-          console.log('Export complete');
-          res.end(JSON.stringify(results));
+          // console.log('Export complete');
+          res.json({
+            results: JSON.stringify(results),
+            exportPath: '/exports/export.csv'
+          });
         }
       });
     });

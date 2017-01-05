@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <form v-on:submit="initExport($event)">
+    <form @submit="initExport($event)">
       <p>Load the .csv file and fetch</p>
       <input type="file" name="fileinput" ref="fileinput"><br><br>
       <div>
@@ -14,10 +14,13 @@
       <button class="btn">Export</button>
     </form>
     <spinner v-if="inProgress"></spinner>
-    <div class="results" ref="results">
+    <div class="results" ref="results" v-if="results.length">
       <ul>
         <li :class="r.state" v-for="r in results">{{ r.title }}</li>
       </ul>
+      <form method="get" :action="exportPath" @submit="downloadExport($event)">
+        <button type="submit" class="btn">Download</button>
+      </form>
     </div>
   </div>
 </template>
@@ -29,6 +32,7 @@ export default {
   data () {
     return {
       fileData: '',
+      exportPath: '',
       PS_categories: [{id: '', name: ''}],
       results: [],
       inProgress: false
@@ -68,13 +72,18 @@ export default {
       this.fileData.append('inputcategory', this.$refs.category.value);
       this.$http.post('/upload', this.fileData).then((res) => {
         console.log('File sent..');
-        this.results = JSON.parse(res.data);
+        this.results = JSON.parse(res.data.results);
+        this.exportPath = res.data.exportPath;
         this.inProgress = false;
       }, (err) => {
         console.log('Error occurred..');
         console.log(err);
       });
       event.preventDefault();
+    },
+
+    downloadExport: function(event) {
+      console.log('dowloading..');
     }
   }
 }
@@ -110,7 +119,7 @@ body {
 .results ul {
   max-width: 50%;
   max-height: 300px;
-  margin: 0 auto;
+  margin: 50px auto 0;
   padding: 0;
   overflow-y: auto;
   list-style: none;
